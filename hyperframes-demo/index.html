@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>Invariant Topology — Hyperframes Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      background: #0a0a0f;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+    }
+
+    .clip {
+      position: absolute;
+      width: 1080px;
+      height: 1920px;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ---- Shared Utilities ---- */
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .cyan { color: #00e5cc; }
+    .violet { color: #7c3aed; }
+    .muted { color: rgba(255,255,255,0.7); }
+    .red-accent { color: #ff4444; }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      color: #00e5cc;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .scene-headline {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: 80px;
+      line-height: 1.05;
+      text-align: center;
+      margin-bottom: 40px;
+      letter-spacing: -0.02em;
+    }
+
+    .scene-body {
+      font-family: 'Inter', sans-serif;
+      font-size: 36px;
+      line-height: 1.6;
+      text-align: center;
+      color: rgba(255,255,255,0.75);
+      max-width: 860px;
+    }
+
+    .glass-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(0,229,204,0.15);
+      border-radius: 20px;
+      padding: 48px;
+    }
+
+    /* ---- Scene 1: Hero ---- */
+    #scene1 {
+      padding: 120px 80px;
+      gap: 0;
+    }
+
+    .hero-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: 120px;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      text-align: center;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 60%, #00e5cc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 38px;
+      color: #00e5cc;
+      text-align: center;
+      margin-bottom: 56px;
+      letter-spacing: 0.04em;
+    }
+
+    .hero-tagline {
+      font-family: 'Inter', sans-serif;
+      font-size: 32px;
+      font-style: italic;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      max-width: 800px;
+      line-height: 1.5;
+      margin-bottom: 80px;
+    }
+
+    #point-cloud {
+      position: relative;
+      width: 560px;
+      height: 560px;
+      margin-top: 20px;
+    }
+
+    #point-cloud svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ---- Scene 2: State Space ---- */
+    #scene2 {
+      padding: 120px 80px;
+      gap: 0;
+    }
+
+    .cards-row {
+      display: flex;
+      gap: 40px;
+      width: 100%;
+      max-width: 920px;
+      margin-top: 60px;
+    }
+
+    .state-card {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(18px);
+      border-radius: 20px;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .state-card.lawful {
+      border: 1px solid rgba(0,229,100,0.4);
+    }
+
+    .state-card.destructive {
+      border: 1px solid rgba(255,80,50,0.4);
+    }
+
+    .card-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .card-label.lawful-label { color: #00e564; }
+    .card-label.destructive-label { color: #ff5032; }
+
+    .card-icon { width: 180px; height: 120px; }
+
+    .card-caption {
+      font-family: 'Inter', sans-serif;
+      font-size: 28px;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* ---- Scene 3: Adversarial Gradient ---- */
+    #scene3 {
+      padding: 120px 80px;
+      gap: 0;
+    }
+
+    .equation-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(0,229,204,0.15);
+      border-radius: 20px;
+      padding: 48px 80px;
+      margin: 48px 0;
+    }
+
+    .equation-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 64px;
+      color: #00e5cc;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .boundary-section {
+      width: 100%;
+      max-width: 860px;
+      margin-top: 20px;
+    }
+
+    .boundary-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .boundary-bar-wrap {
+      position: relative;
+      width: 100%;
+      height: 40px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .boundary-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 20px;
+      background: linear-gradient(90deg, rgba(255,60,60,0.8) 0%, rgba(0,229,204,0.9) 100%);
+      box-shadow: 0 0 24px rgba(0,229,204,0.5);
+    }
+
+    /* ---- Scene 4: Token Economy ---- */
+    #scene4 {
+      padding: 120px 80px;
+      gap: 0;
+    }
+
+    .bars-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 80px;
+      width: 100%;
+      margin-top: 60px;
+      height: 500px;
+    }
+
+    .bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar-column {
+      width: 140px;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+    }
+
+    .bar-attacker {
+      background: linear-gradient(180deg, rgba(255,60,60,0.9), rgba(180,20,20,0.7));
+      box-shadow: 0 0 30px rgba(255,60,60,0.4);
+      height: 0px;
+    }
+
+    .bar-defender {
+      background: linear-gradient(180deg, rgba(0,229,204,0.95), rgba(0,150,130,0.7));
+      box-shadow: 0 0 40px rgba(0,229,204,0.5);
+      height: 0px;
+    }
+
+    .bar-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 30px;
+      text-align: center;
+    }
+
+    .asymmetric-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      align-self: center;
+      margin-bottom: 80px;
+    }
+
+    .asymmetric-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      color: #00e5cc;
+      letter-spacing: 0.06em;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: nowrap;
+    }
+
+    /* ---- Scene 5: Antifragile Immunity ---- */
+    #scene5 {
+      padding: 120px 80px;
+      gap: 0;
+    }
+
+    #membrane-wrap {
+      position: relative;
+      width: 600px;
+      height: 600px;
+      margin-top: 60px;
+    }
+
+    #membrane-wrap svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ---- Scene 6: Abstract ---- */
+    #scene6 {
+      padding: 140px 100px;
+      gap: 0;
+      background: #0a0a0f;
+    }
+
+    .pull-quote {
+      font-family: 'Inter', sans-serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 58px;
+      line-height: 1.45;
+      text-align: center;
+      color: rgba(255,255,255,0.92);
+      max-width: 860px;
+      margin-top: 60px;
+      position: relative;
+    }
+
+    .pull-quote::before {
+      content: '\201C';
+      font-size: 160px;
+      color: rgba(0,229,204,0.25);
+      position: absolute;
+      top: -60px;
+      left: -40px;
+      line-height: 1;
+      font-style: normal;
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 100px;
+    }
+
+    .footer-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      color: #00e5cc;
+      text-decoration: none;
+      padding: 0 36px;
+    }
+
+    .footer-divider {
+      width: 1px;
+      height: 32px;
+      background: rgba(0,229,204,0.4);
+    }
+  </style>
+</head>
+<body>
+<div
+  id="root"
+  data-composition-id="invariant-topology-demo"
+  data-start="0"
+  data-duration="30"
+  data-width="1080"
+  data-height="1920"
+>
+
+  <!-- ===== SCENE 1: HERO (0–5s) ===== -->
+  <div class="clip" id="scene1" data-start="0" data-duration="5" data-track-index="0">
+    <div class="hero-title" id="s1-title">Invariant<br>Topology</div>
+    <div class="hero-subtitle mono" id="s1-sub">in Language State Space</div>
+    <div class="hero-tagline" id="s1-tagline">
+      Intelligence is not output; it is the conservation of identity under transformation.
+    </div>
+
+    <div id="point-cloud">
+      <svg id="cloud-svg" viewBox="0 0 560 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00e5cc" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#00e5cc" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="dotGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <!-- Background glow -->
+        <circle cx="280" cy="280" r="240" fill="url(#glowGrad)"/>
+        <!-- Mesh lines group -->
+        <g id="mesh-lines" stroke="#00e5cc" stroke-opacity="0.12" stroke-width="1"/>
+        <!-- Dots group -->
+        <g id="dots-group" filter="url(#dotGlow)"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===== SCENE 2: STATE SPACE (5–10s) ===== -->
+  <div class="clip" id="scene2" data-start="5" data-duration="5" data-track-index="1">
+    <div class="section-label">§1 — STATE SPACE GEOMETRY</div>
+    <div class="scene-headline">Language as<br>Trajectory</div>
+    <div class="scene-body">
+      Ideas exist as regions ℛ in high-dimensional manifold space.
+      An identity persists as long as its trajectory remains within its invariant region.
+    </div>
+
+    <div class="cards-row">
+      <!-- Left card: Lawful Deformation -->
+      <div class="state-card lawful" id="card-lawful">
+        <div class="card-label lawful-label">LAWFUL DEFORMATION</div>
+        <svg class="card-icon" viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="90" cy="60" rx="78" ry="48" fill="none" stroke="rgba(0,229,100,0.3)" stroke-width="2" stroke-dasharray="8,6"/>
+          <path d="M20,80 C40,40 60,90 90,60 C110,40 130,75 160,55" fill="none" stroke="#00e564" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="20" cy="80" r="6" fill="#00e564"/>
+          <circle cx="160" cy="55" r="6" fill="#00e564"/>
+        </svg>
+        <div class="card-caption">Paraphrase.<br>Synonym.<br>Translation.</div>
+      </div>
+
+      <!-- Right card: Destructive Deformation -->
+      <div class="state-card destructive" id="card-destructive">
+        <div class="card-label destructive-label">DESTRUCTIVE DEFORMATION</div>
+        <svg class="card-icon" viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="90" cy="60" rx="78" ry="48" fill="none" stroke="rgba(255,80,50,0.3)" stroke-width="2" stroke-dasharray="8,6"/>
+          <path d="M20,80 C40,40 90,60 120,30 L148,10 M130,42 L162,38 M148,10 L158,30" fill="none" stroke="#ff5032" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="80" r="6" fill="#ff5032"/>
+          <circle cx="148" cy="10" r="6" fill="#ff5032" opacity="0.6"/>
+          <!-- Fragment dots -->
+          <circle cx="155" cy="95" r="4" fill="#ff5032" opacity="0.4"/>
+          <circle cx="162" cy="75" r="3" fill="#ff5032" opacity="0.3"/>
+          <circle cx="145" cy="88" r="3" fill="#ff5032" opacity="0.35"/>
+        </svg>
+        <div class="card-caption">Hallucination.<br>Collapse.<br>Drift.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCENE 3: ADVERSARIAL GRADIENT (10–15s) ===== -->
+  <div class="clip" id="scene3" data-start="10" data-duration="5" data-track-index="2">
+    <div class="section-label">§2 — ADVERSARIAL GRADIENT</div>
+    <div class="scene-headline">Attacks as<br>Boundary Probes</div>
+    <div class="scene-body">
+      Adversarial feedback is the model's sense of touch.
+      Each attack maps the exact contour of its identity boundary.
+    </div>
+
+    <div class="equation-card" id="s3-eq">
+      <div class="equation-text">δℐ ≈ ∇ₓℐ · Δx</div>
+    </div>
+
+    <div class="boundary-section">
+      <div class="boundary-labels">
+        <span class="mono red-accent" style="font-size:26px; letter-spacing:0.08em;">FRAGILE</span>
+        <span class="mono cyan" style="font-size:26px; letter-spacing:0.08em;">ROBUST</span>
+      </div>
+      <div class="boundary-bar-wrap">
+        <div class="boundary-bar-fill" id="boundary-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCENE 4: TOKEN ECONOMY (15–20s) ===== -->
+  <div class="clip" id="scene4" data-start="15" data-duration="5" data-track-index="3">
+    <div class="section-label">§3 — PROOF OF WORK</div>
+    <div class="scene-headline">Token Budget<br>= Security</div>
+    <div class="scene-body">
+      Hardening is a proof-of-work lottery.
+      Security ≡ spending more tokens than your attacker.
+    </div>
+
+    <div class="bars-row">
+      <div class="bar-group">
+        <div class="bar-column bar-attacker" id="bar-attacker"></div>
+        <div class="bar-label red-accent mono">T<sub>attacker</sub></div>
+      </div>
+
+      <div class="asymmetric-arrow">
+        <svg width="48" height="200" viewBox="0 0 48 200" xmlns="http://www.w3.org/2000/svg">
+          <line x1="24" y1="0" x2="24" y2="180" stroke="#00e5cc" stroke-width="2" stroke-dasharray="6,4"/>
+          <polygon points="24,200 8,172 40,172" fill="#00e5cc"/>
+        </svg>
+        <div class="asymmetric-label">ASYMMETRIC COST</div>
+      </div>
+
+      <div class="bar-group">
+        <div class="bar-column bar-defender" id="bar-defender"></div>
+        <div class="bar-label cyan mono">T<sub>defender</sub></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCENE 5: ANTIFRAGILE IMMUNITY (20–25s) ===== -->
+  <div class="clip" id="scene5" data-start="20" data-duration="5" data-track-index="4">
+    <div class="section-label">§4 — ANTIFRAGILE IMMUNITY</div>
+    <div class="scene-headline">The Living<br>Membrane</div>
+    <div class="scene-body">
+      Move from robust (static wall) to antifragile (living system).
+      Controlled adversarial pressure is hormetic stress — the membrane grows stronger.
+    </div>
+
+    <div id="membrane-wrap">
+      <svg id="membrane-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="membraneGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="8" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00e5cc" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#00e5cc" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Inner fill -->
+        <circle cx="300" cy="300" r="220" fill="url(#innerGlow)"/>
+
+        <!-- Cell membrane path (organic, ~24 points around circle) -->
+        <path id="membrane-path"
+          d="M300,80
+             C330,72 358,78 378,95
+             C400,113 415,138 422,162
+             C432,192 428,218 435,242
+             C442,268 455,285 450,312
+             C445,338 430,358 418,378
+             C404,400 385,415 362,424
+             C338,434 312,432 288,430
+             C262,428 238,422 218,408
+             C196,393 180,372 170,348
+             C158,322 158,294 162,268
+             C166,242 175,218 188,198
+             C202,176 220,158 242,144
+             C264,130 290,86 300,80 Z"
+          fill="none"
+          stroke="#00e5cc"
+          stroke-width="2.5"
+          stroke-linejoin="round"
+          filter="url(#membraneGlow)"
+        />
+
+        <!-- Identity label inside -->
+        <text x="300" y="308" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="28" fill="rgba(0,229,204,0.7)" letter-spacing="2">IDENTITY REGION ℛ</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===== SCENE 6: ABSTRACT / SYNTHESIS (25–30s) ===== -->
+  <div class="clip" id="scene6" data-start="25" data-duration="5" data-track-index="5">
+    <div class="section-label">§5 — SYNTHESIS</div>
+
+    <div class="pull-quote" id="s6-quote">
+      Robust language intelligence is a computationally-bound topological property.
+      A system's identity is defined by its ability to remain itself while the world tries to change it.
+    </div>
+
+    <div class="footer-row" id="s6-footer">
+      <a class="footer-link" href="#">The Paper</a>
+      <div class="footer-divider"></div>
+      <a class="footer-link" href="#">The Authors</a>
+      <div class="footer-divider"></div>
+      <a class="footer-link" href="#">The Methodology</a>
+    </div>
+  </div>
+
+</div><!-- #root -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* -------------------------------------------------------
+     POINT CLOUD — Scene 1
+  ------------------------------------------------------- */
+  const dotsGroup = document.getElementById('dots-group');
+  const meshLines = document.getElementById('mesh-lines');
+
+  // Generate 40 pseudo-random dots in a sphere distribution
+  const pts = [];
+  const rng = (seed) => {
+    let s = seed;
+    return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+  };
+  const rand = rng(42);
+
+  for (let i = 0; i < 40; i++) {
+    // Place in a sphere-like cluster around center 280,280 with radius ~220
+    const theta = rand() * Math.PI * 2;
+    const phi = rand() * Math.PI;
+    const r = 80 + rand() * 150; // 80..230
+    const x = 280 + r * Math.sin(phi) * Math.cos(theta);
+    const y = 280 + r * Math.sin(phi) * Math.sin(theta) * 0.6; // flatten Y a bit
+    pts.push({ x, y });
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x.toFixed(1));
+    circle.setAttribute('cy', y.toFixed(1));
+    circle.setAttribute('r', (2 + rand() * 3).toFixed(1));
+    circle.setAttribute('fill', '#00e5cc');
+    circle.setAttribute('opacity', (0.5 + rand() * 0.5).toFixed(2));
+    dotsGroup.appendChild(circle);
+  }
+
+  // Connect nearest neighbors (distance < 120)
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i + 1; j < pts.length; j++) {
+      const dx = pts[i].x - pts[j].x;
+      const dy = pts[i].y - pts[j].y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 120) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', pts[i].x.toFixed(1));
+        line.setAttribute('y1', pts[i].y.toFixed(1));
+        line.setAttribute('x2', pts[j].x.toFixed(1));
+        line.setAttribute('y2', pts[j].y.toFixed(1));
+        line.setAttribute('stroke-opacity', (0.08 + (1 - d / 120) * 0.12).toFixed(2));
+        meshLines.appendChild(line);
+      }
+    }
+  }
+
+  /* -------------------------------------------------------
+     MASTER GSAP TIMELINE
+  ------------------------------------------------------- */
+  const tl = gsap.timeline({ paused: true });
+
+  /* --- Scene 1: Hero (0–5s) --- */
+  tl.set('#scene1', { opacity: 1 }, 0);
+  tl.from('#s1-title',   { y: 80, opacity: 0, duration: 0.8, ease: 'power3.out' }, 0.2);
+  tl.from('#s1-sub',     { y: 50, opacity: 0, duration: 0.7, ease: 'power2.out' }, 0.7);
+  tl.from('#s1-tagline', { y: 40, opacity: 0, duration: 0.7, ease: 'power2.out' }, 1.1);
+  tl.from('#point-cloud', { scale: 0.5, opacity: 0, duration: 1.0, ease: 'back.out(1.4)' }, 1.5);
+
+  // Continuous slow rotate of the cloud group — full spin over 8s, repeat but clamp at scene end
+  tl.to('#dots-group',  { rotation: 360, transformOrigin: '280px 280px', duration: 8, ease: 'none', repeat: 0 }, 1.5);
+  tl.to('#mesh-lines',  { rotation: 360, transformOrigin: '280px 280px', duration: 8, ease: 'none', repeat: 0 }, 1.5);
+
+  // Scene 1 fade out + hard opacity kill
+  tl.to('#scene1', { opacity: 0, duration: 0.4, ease: 'power2.in' }, 4.6);
+  tl.set('#scene1', { opacity: 0 }, 5.0);
+
+  /* --- Scene 2: State Space (5–10s) --- */
+  tl.set('#scene2', { opacity: 1 }, 5);
+  tl.from('#scene2 .section-label', { y: -30, opacity: 0, duration: 0.6, ease: 'power2.out' }, 5.1);
+  tl.from('#scene2 .scene-headline', { opacity: 0, y: 40, duration: 0.7, ease: 'power3.out' }, 5.5);
+  tl.from('#scene2 .scene-body', { opacity: 0, y: 30, duration: 0.6, ease: 'power2.out' }, 6.0);
+  tl.from('#card-lawful',      { y: 120, opacity: 0, duration: 0.7, ease: 'back.out(1.2)' }, 6.5);
+  tl.from('#card-destructive', { y: 120, opacity: 0, duration: 0.7, ease: 'back.out(1.2)' }, 6.8);
+  tl.to('#scene2', { opacity: 0, duration: 0.4, ease: 'power2.in' }, 9.6);
+  tl.set('#scene2', { opacity: 0 }, 10.0);
+
+  /* --- Scene 3: Adversarial Gradient (10–15s) --- */
+  tl.set('#scene3', { opacity: 1 }, 10);
+  tl.from('#scene3 .section-label', { y: -30, opacity: 0, duration: 0.6 }, 10.1);
+  tl.from('#scene3 .scene-headline', { opacity: 0, y: 40, duration: 0.7 }, 10.5);
+  tl.from('#scene3 .scene-body', { opacity: 0, y: 30, duration: 0.6 }, 11.0);
+  tl.from('#s3-eq', { opacity: 0, scale: 0.8, duration: 0.8, ease: 'back.out(1.4)' }, 11.5);
+  tl.from('#scene3 .boundary-section', { opacity: 0, y: 30, duration: 0.5 }, 12.2);
+  tl.to('#boundary-fill', { width: '100%', duration: 1.4, ease: 'power2.inOut' }, 12.5);
+  tl.to('#scene3', { opacity: 0, duration: 0.4, ease: 'power2.in' }, 14.6);
+  tl.set('#scene3', { opacity: 0 }, 15.0);
+
+  /* --- Scene 4: Token Economy (15–20s) --- */
+  tl.set('#scene4', { opacity: 1 }, 15);
+  tl.from('#scene4 .section-label', { y: -30, opacity: 0, duration: 0.6 }, 15.1);
+  tl.from('#scene4 .scene-headline', { opacity: 0, y: 40, duration: 0.7 }, 15.5);
+  tl.from('#scene4 .scene-body', { opacity: 0, y: 30, duration: 0.6 }, 16.0);
+  tl.from('#scene4 .bars-row', { opacity: 0, duration: 0.4 }, 16.5);
+  // Bar heights animate up
+  tl.to('#bar-attacker', { height: 160, duration: 1.0, ease: 'power2.out' }, 16.8);
+  tl.to('#bar-defender', { height: 400, duration: 1.2, ease: 'power3.out' }, 17.0);
+  tl.to('#scene4', { opacity: 0, duration: 0.4, ease: 'power2.in' }, 19.6);
+  tl.set('#scene4', { opacity: 0 }, 20.0);
+
+  /* --- Scene 5: Antifragile Immunity (20–25s) --- */
+  tl.set('#scene5', { opacity: 1 }, 20);
+  tl.from('#scene5 .section-label', { y: -30, opacity: 0, duration: 0.6 }, 20.1);
+  tl.from('#scene5 .scene-headline', { opacity: 0, y: 40, duration: 0.7 }, 20.5);
+  tl.from('#scene5 .scene-body', { opacity: 0, y: 30, duration: 0.6 }, 21.0);
+  tl.from('#membrane-wrap', { opacity: 0, scale: 0.4, duration: 0.9, ease: 'back.out(1.6)' }, 21.5);
+
+  // Membrane ripple attack: scale slightly on x-axis then snap back + stroke thickens
+  tl.to('#membrane-path', {
+    attr: { 'stroke-width': 1.0 },
+    duration: 0.3,
+    ease: 'power2.in'
+  }, 22.5);
+  tl.to('#membrane-path', {
+    attr: { 'stroke-width': 4.5 },
+    duration: 0.6,
+    ease: 'elastic.out(1, 0.4)'
+  }, 22.8);
+
+  // Ripple glow pulse
+  tl.to('#membrane-path', {
+    attr: { stroke: '#fff' },
+    duration: 0.15,
+    ease: 'none'
+  }, 22.5);
+  tl.to('#membrane-path', {
+    attr: { stroke: '#00e5cc' },
+    duration: 0.5,
+    ease: 'power2.out'
+  }, 22.65);
+
+  tl.to('#scene5', { opacity: 0, duration: 0.4, ease: 'power2.in' }, 24.6);
+  tl.set('#scene5', { opacity: 0 }, 25.0);
+
+  /* --- Scene 6: Synthesis (25–30s) --- */
+  tl.set('#scene6', { opacity: 0 }, 25);
+  tl.to('#scene6', { opacity: 1, duration: 0.8, ease: 'power2.out' }, 25);
+  tl.from('#scene6 .section-label', { y: -30, opacity: 0, duration: 0.6 }, 25.5);
+  tl.from('#s6-quote', { opacity: 0, y: 50, duration: 1.0, ease: 'power3.out' }, 26.0);
+  tl.from('#s6-footer', { opacity: 0, y: 30, duration: 0.7, ease: 'power2.out' }, 27.2);
+  tl.set('#scene6', { opacity: 0 }, 30.0);
+
+  /* -------------------------------------------------------
+     REGISTER for Hyperframes
+  ------------------------------------------------------- */
+  window.__timelines = window.__timelines || {};
+  window.__timelines['invariant-topology-demo'] = tl;
+
+})();
+</script>
+</body>
+</html>
